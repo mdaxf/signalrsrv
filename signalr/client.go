@@ -223,7 +223,14 @@ func (c *client) Stop() {
 	}
 	c.setState(ClientClosed)
 }
-
+func (c *client) ConnectionID() string {
+	c.mx.RLock()
+	defer c.mx.RUnlock()
+	if c.conn == nil {
+		return ""
+	}
+	return c.conn.ConnectionID()
+}
 func (c *client) run() error {
 	// negotiate and so on
 	protocol, err := c.setupConnectionAndProtocol()
@@ -235,6 +242,7 @@ func (c *client) run() error {
 	c.mx.Lock()
 	c.loop = loop
 	c.mx.Unlock()
+	fmt.Println("run", c.State(), c.loop)
 	// Broadcast when loop is connected
 	isLoopConnected := make(chan struct{}, 1)
 	go func() {
@@ -245,6 +253,7 @@ func (c *client) run() error {
 	err = loop.Run(isLoopConnected)
 
 	if err == nil {
+		fmt.Println("run loop error:", err)
 		err = loop.hubConn.Close("", false) // allowReconnect value is ignored as servers never initiate a connection
 	}
 
@@ -417,22 +426,30 @@ func (c *client) waitingIsOver(waitFor ClientState, ch chan<- error) bool {
 
 func (c *client) Invoke(method string, arguments ...interface{}) <-chan InvokeResult {
 	ch := make(chan InvokeResult, 1)
+	fmt.Println("Invoke", method, arguments)
 	go func() {
-
+		fmt.Println(c.State())
 		if err := <-c.waitForConnected(); err != nil {
+			fmt.Println("Invoke", method, arguments, err)
 			ch <- InvokeResult{Error: err}
 			close(ch)
 			return
 		}
 		id := c.loop.GetNewID()
+		fmt.Println("Invoke get new ID: ", method, arguments, id)
 		resultCh, errCh := c.loop.invokeClient.newInvocation(id)
+		fmt.Println("Invoke newInvocation: ", method, arguments, id, resultCh, errCh)
 		irCh := newInvokeResultChan(c.context(), resultCh, errCh)
+		fmt.Println("Invoke newInvokeResultChan: ", method, arguments, id, irCh)
+
 		if err := c.loop.hubConn.SendInvocation(id, method, arguments); err != nil {
+			fmt.Println("Invoke SendInvocation error: ", method, arguments, id, err)
 			c.loop.invokeClient.deleteInvocation(id)
 			ch <- InvokeResult{Error: err}
 			close(ch)
 			return
 		}
+		fmt.Println("Invoke SendInvocation: ", method, arguments, id)
 		go func() {
 			for ir := range irCh {
 				ch <- ir
@@ -452,6 +469,7 @@ func (c *client) Send(method string, arguments ...interface{}) <-chan error {
 			return
 		}
 		id := c.loop.GetNewID()
+		fmt.Println("Send get new ID: ", method, arguments, id)
 		_, sendErrCh := c.loop.invokeClient.newInvocation(id)
 		if err := c.loop.hubConn.SendInvocation(id, method, arguments); err != nil {
 			c.loop.invokeClient.deleteInvocation(id)

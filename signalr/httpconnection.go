@@ -63,7 +63,7 @@ func WithTransports(transports ...TransportType) func(*httpConnection) error {
 // but not the Connection itself.
 func NewHTTPConnection(ctx context.Context, address string, options ...func(*httpConnection) error) (Connection, error) {
 	httpConn := &httpConnection{}
-	//	fmt.Println("NewHTTPConnection,", ctx, address, options)
+	fmt.Println("NewHTTPConnection,", ctx, address, options)
 	for _, option := range options {
 		if option != nil {
 			if err := option(httpConn); err != nil {
@@ -86,18 +86,21 @@ func NewHTTPConnection(ctx context.Context, address string, options ...func(*htt
 
 	negotiateURL := *reqURL
 	negotiateURL.Path = path.Join(negotiateURL.Path, "negotiate")
-	//	fmt.Println("negotiateURL", negotiateURL)
+	fmt.Println("negotiateURL", negotiateURL)
 	req, err := http.NewRequestWithContext(ctx, "POST", negotiateURL.String(), nil)
 	if err != nil {
 		fmt.Println("NewRequestWithContext err", err)
 		return nil, err
 	}
-	//	fmt.Println("req", req, httpConn.headers)
+	fmt.Println("req", req, httpConn.headers)
 	if httpConn.headers != nil {
 		req.Header = httpConn.headers()
 	}
-	//	fmt.Println("req", req)
+	fmt.Println("req", req)
 	resp, err := httpConn.client.Do(req)
+
+	fmt.Println("resp", resp, err)
+
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +111,13 @@ func NewHTTPConnection(ctx context.Context, address string, options ...func(*htt
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	fmt.Println("body", body, err)
 	if err != nil {
 		return nil, err
 	}
 
 	negotiateResponse := negotiateResponse{}
+	fmt.Println("negotiateResponse", negotiateResponse)
 	if err := json.Unmarshal(body, &negotiateResponse); err != nil {
 		return nil, err
 	}
@@ -120,7 +125,7 @@ func NewHTTPConnection(ctx context.Context, address string, options ...func(*htt
 	q := reqURL.Query()
 	q.Set("id", negotiateResponse.ConnectionID)
 	reqURL.RawQuery = q.Encode()
-
+	fmt.Println("reqURL", reqURL, q.Encode())
 	// Select the best connection
 	var conn Connection
 	switch {

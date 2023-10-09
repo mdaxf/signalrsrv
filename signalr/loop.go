@@ -184,6 +184,14 @@ func (l *loop) GetNewID() string {
 
 func (l *loop) handleInvocationMessage(invocation invocationMessage) {
 	_ = l.dbg.Log(evt, msgRecv, msg, fmtMsg(invocation))
+
+	if invocation.InvocationID == "" {
+		// No invocation id, no invocation
+		id := l.GetNewID()
+		fmt.Println("Message get new ID: ", id)
+		_, _ = l.invokeClient.newInvocation(id)
+	}
+
 	// Transient hub, dispatch invocation here
 	if method, ok := getMethod(l.party.invocationTarget(l.hubConn), invocation.Target); !ok {
 		// Unable to find the method
@@ -266,6 +274,7 @@ func (l *loop) handleCompletionMessage(message completionMessage) error {
 	_ = l.dbg.Log(evt, msgRecv, msg, fmtMsg(message))
 	var err error
 	if l.streamClient.handlesInvocationID(message.InvocationID) {
+		message.InvocationID = message.InvocationID
 		err = l.streamClient.receiveCompletionItem(message, l.invokeClient)
 	} else if l.invokeClient.handlesInvocationID(message.InvocationID) {
 		err = l.invokeClient.receiveCompletionItem(message)
