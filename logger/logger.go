@@ -17,6 +17,7 @@ var (
 	TranCodeLogger  *logs.IACLogger
 	JobLogger       *logs.IACLogger
 	FrameworkLogger *logs.IACLogger
+	SignalRLogger   *logs.IACLogger
 )
 
 const (
@@ -26,6 +27,7 @@ const (
 	Database  string = "Database"
 	TranCode  string = "TranCode"
 	Job       string = "Job"
+	SignalR   string = "SignalR"
 )
 
 type Log struct {
@@ -35,6 +37,11 @@ type Log struct {
 }
 
 func Init(config map[string]interface{}) {
+
+	SignalRLogger = logs.NewLogger()
+	//logs.SetGlobalFormatter(GlobalFormatter())
+	//FrameworkLogger.SetLogger(logs.AdapterConsole)
+	setLogger(SignalRLogger, config, "SignalR")
 
 	FrameworkLogger = logs.NewLogger()
 	//logs.SetGlobalFormatter(GlobalFormatter())
@@ -112,7 +119,7 @@ func setLogger(loger *logs.IACLogger, config map[string]interface{}, logtype str
 	fullfilename := ""
 	maxlines := 1000000
 	maxsize := 1024 * 1024 * 1024
-	fmt.Println(fmt.Sprintf(`{"level":%d}, %d`, level, logadapter))
+	//	fmt.Println(fmt.Sprintf(`{"level":%d}, %d`, level, logadapter))
 	if logadapter == "file" || logadapter == "multifile" {
 		adapterconfig := make(map[string]interface{})
 		if config["adapterconfig"] != nil {
@@ -217,6 +224,8 @@ func (l *Log) Debug(logmsg string) {
 		JobLogger.Debug(logmsg)
 	case Framework:
 		FrameworkLogger.Debug(logmsg)
+	case SignalR:
+		SignalRLogger.Debug(logmsg)
 	default:
 		Logger.Debug(logmsg)
 	}
@@ -239,6 +248,8 @@ func (l *Log) Info(logmsg string) {
 		JobLogger.Info(logmsg)
 	case Framework:
 		FrameworkLogger.Info(logmsg)
+	case SignalR:
+		SignalRLogger.Info(logmsg)
 	default:
 		Logger.Info(logmsg)
 	}
@@ -260,6 +271,8 @@ func (l *Log) Warn(logmsg string) {
 		JobLogger.Warn(logmsg)
 	case Framework:
 		FrameworkLogger.Warn(logmsg)
+	case SignalR:
+		SignalRLogger.Warn(logmsg)
 	default:
 		Logger.Warn(logmsg)
 	}
@@ -281,6 +294,8 @@ func (l *Log) Error(logmsg string) {
 		JobLogger.Error(logmsg)
 	case Framework:
 		FrameworkLogger.Error(logmsg)
+	case SignalR:
+		SignalRLogger.Error(logmsg)
 	default:
 		Logger.Error(logmsg)
 	}
@@ -302,6 +317,8 @@ func (l *Log) Notice(logmsg string) {
 		JobLogger.Notice(logmsg)
 	case Framework:
 		FrameworkLogger.Notice(logmsg)
+	case SignalR:
+		SignalRLogger.Notice(logmsg)
 	default:
 		Logger.Notice(logmsg)
 	}
@@ -324,6 +341,8 @@ func (l *Log) Critical(logmsg string) {
 		JobLogger.Critical(logmsg)
 	case Framework:
 		FrameworkLogger.Critical(logmsg)
+	case SignalR:
+		SignalRLogger.Critical(logmsg)
 	default:
 		Logger.Critical(logmsg)
 	}
@@ -346,6 +365,8 @@ func (l *Log) Alert(logmsg string) {
 		JobLogger.Alert(logmsg)
 	case Framework:
 		FrameworkLogger.Alert(logmsg)
+	case SignalR:
+		SignalRLogger.Alert(logmsg)
 	default:
 		Logger.Alert(logmsg)
 	}
@@ -367,6 +388,8 @@ func (l *Log) Emergency(logmsg string) {
 		JobLogger.Emergency(logmsg)
 	case Framework:
 		FrameworkLogger.Emergency(logmsg)
+	case SignalR:
+		SignalRLogger.Emergency(logmsg)
 	default:
 		Logger.Emergency(logmsg)
 	}

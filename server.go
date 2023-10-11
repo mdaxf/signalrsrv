@@ -103,7 +103,7 @@ func main() {
 
 	clients := config.Clients
 
-	ilog := logger.Log{ModuleName: logger.Framework, User: "System", ControllerName: "Signalr Server"}
+	ilog := logger.Log{ModuleName: logger.SignalR, User: "System", ControllerName: "Signalr Server"}
 	logger.Init(config.Log)
 
 	ilog.Info(fmt.Sprintf("Starting SignalR Server Address: %s, allow Clients: %s", address, clients))
