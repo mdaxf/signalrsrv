@@ -1,16 +1,23 @@
-# Use a minimal Linux-based image as the base image
+# Use a lightweight Linux distribution as the base image
 FROM golang:1.21-alpine
 
-# Create a directory to store your Go executable
 RUN mkdir /app
 
-# Copy your Go executable into the container
-COPY iacsignarsrv_linux_amd64.sh /app/
+RUN mkdir /app/public
 
-# Copy your Go configuration file into the container
-COPY signalRconfig.json /app/
+# Copy the compiled Go application into the container
+COPY signalrsrv /app/    
+COPY signalRconfig.json /app/  
+COPY public /app/public
+
 # Set the working directory inside the container
 WORKDIR /app
 
-# Define the command to run your Go application
-CMD ["./iacsignarsrv_linux_amd64.sh"]
+# Set permissions on the application (if needed)
+RUN chmod +x signalrsrv
+
+# Expose additional ports
+EXPOSE 8222
+# Define an entry point to run the application
+
+CMD ["./signalrsrv"]

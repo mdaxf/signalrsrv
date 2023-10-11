@@ -11,7 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+/*
+ the method is used by the signalr js client to call the method on the server
+*/
 package main
 
 import (
@@ -19,47 +21,63 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mdaxf/signalrsrv/logger"
 	"github.com/mdaxf/signalrsrv/signalr"
 )
 
 type IACMessageBus struct {
 	signalr.Hub
+	ilog logger.Log
 }
 
 var groupname = "IAC_Internal_MessageBus"
 
 func (c *IACMessageBus) Subscribe(topic string, connectionID string) {
-	fmt.Printf("Subscribe: topic: %s, sender: %s\n", topic, connectionID)
+	//fmt.Printf("Subscribe: topic: %s, sender: %s\n", topic, connectionID)
+	c.ilog.Debug(fmt.Sprintf("Subscribe: topic: %s, sender: %s\n", topic, connectionID))
 }
 func (c *IACMessageBus) Send(topic string, message string, connectionID string) {
-	fmt.Printf("Send: topic: %s, message: %s, sender: %s\n", topic, message, connectionID)
+	c.ilog.Debug(fmt.Sprintf("Send: topic: %s, message: %s, sender: %s\n", topic, message, connectionID))
 	c.Clients().Group(groupname).Send(topic, message)
 	//	c.Clients().Caller().Send("receive", message)
 }
 
+func (c *IACMessageBus) SendToBackEnd(topic string, message string, connectionID string) {
+	c.ilog.Debug(fmt.Sprintf("SendToBackEnd: topic: %s, message: %s, sender: %s\n", topic, message, connectionID))
+	JsonMsg := make(map[string]interface{}) //"{\"topic\":\"" + topic + "\",\"message\":\"" + message + "\",\"sender\":\"" + connectionID + "\"}"
+	JsonMsg["topic"] = topic
+	JsonMsg["message"] = message
+	JsonMsg["sender"] = connectionID
+	//	fmt.Printf("SendToBackEnd: JsonMsg: %s\n", JsonMsg)
+
+	c.ilog.Debug(fmt.Sprintf("SendToBackEnd: JsonMsg: %s\n", JsonMsg))
+	c.Clients().Group(groupname).Send("sendtobackend", JsonMsg)
+	//	c.Clients().Caller().Send("receive", message)
+}
+
 func (c *IACMessageBus) AddMessage(message string, topic string, sender string) {
-	fmt.Printf("AddMessage: topic: %s, message: %s, sender: %s\n", topic, message, sender)
+	ilog.Debug(fmt.Sprintf("AddMessage: topic: %s, message: %s, sender: %s\n", topic, message, sender))
 	c.Clients().Group(groupname).Send(topic, message)
 }
 
 // add the client to the connection
 func (c *IACMessageBus) OnConnected(connectionID string) {
-	fmt.Printf("%s connected\n", connectionID)
+	c.ilog.Debug(fmt.Sprintf("%s connected\n", connectionID))
 	c.Groups().AddToGroup(groupname, connectionID)
 	fmt.Printf("%s connected and added to group %s\n", connectionID, groupname)
 }
 
 func (c *IACMessageBus) OnDisconnected(connectionID string) {
-	fmt.Printf("%s disconnected\n", connectionID)
+	c.ilog.Debug(fmt.Sprintf("%s disconnected\n", connectionID))
 	c.Groups().RemoveFromGroup(groupname, connectionID)
-	fmt.Printf("%s disconnected and removed from group %s\n", connectionID, groupname)
+	ilog.Debug(fmt.Sprintf("%s disconnected and removed from group %s\n", connectionID, groupname))
 }
 
 func (c *IACMessageBus) Broadcast(message string) {
 	// Broadcast to all clients
-	fmt.Printf("broadcast message: %s\n", message)
+	c.ilog.Debug(fmt.Sprintf("broadcast message: %s\n", message))
 	c.Clients().Group(groupname).Send("broadcast", message)
-	//	c.Clients().Group(groupname).Send("receive", message)
+	c.Clients().Group(groupname).Send("receive", message)
 }
 
 func (c *IACMessageBus) Echo(message string) {

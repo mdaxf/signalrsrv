@@ -112,14 +112,15 @@ func (s *server) MapHTTP(routerFactory func() MappableRouter, path string) {
 	negotiateHandler := corsMiddleware(http.HandlerFunc(httpMux.negotiate))
 	router.Handle(fmt.Sprintf("%s/negotiate", path), negotiateHandler)
 	//router.HandleFunc(fmt.Sprintf("%s/negotiate", path), httpMux.negotiate)
-	fmt.Println("MapHTTP", fmt.Sprintf("%s/negotiate", path), httpMux.negotiate)
+	//	fmt.Println("MapHTTP", fmt.Sprintf("%s/negotiate", path), httpMux.negotiate)
 
 	otherRouteHandler := corsMiddleware(httpMux)
 
 	router.Handle(path, otherRouteHandler)
 
 	router.Handle("*", otherRouteHandler)
-	fmt.Println("MapHTTP", path, otherRouteHandler)
+	//	fmt.Println("MapHTTP", path, otherRouteHandler)
+	//
 	// router.Handle(path, httpMux)
 }
 func EnableCors(w *http.ResponseWriter, r *http.Request) {
@@ -143,9 +144,9 @@ func corsMiddleware(next http.Handler) http.Handler {
 
 		// Set CORS headers to allow requests from any origin
 		EnableCors(&w, r)
-		fmt.Println("corsMiddleware", w.Header(), r.Method, r.Host, r.URL, r.Body, w.Header().Get("Origin"))
-		fmt.Println("request:", r.Header.Get("origin"), r.Method, r.Host, r.URL, r.Body, r.Header)
-		fmt.Println("next ServeHTTP:", next)
+		//	fmt.Println("corsMiddleware", w.Header(), r.Method, r.Host, r.URL, r.Body, w.Header().Get("Origin"))
+		//	fmt.Println("request:", r.Header.Get("origin"), r.Method, r.Host, r.URL, r.Body, r.Header)
+		//	fmt.Println("next ServeHTTP:", next)
 
 		// Call the next handler in the chain
 		next.ServeHTTP(w, r)
@@ -158,7 +159,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 func (s *server) Serve(conn Connection) error {
 
 	protocol, err := s.processHandshake(conn)
-	fmt.Print("protocol", protocol, err)
+	//	fmt.Print("protocol", protocol, err)
 	if err != nil {
 		info, _ := s.prefixLoggers("")
 		_ = info.Log(evt, "processHandshake", "connectionId", conn.ConnectionID(), "error", err, react, "do not connect")

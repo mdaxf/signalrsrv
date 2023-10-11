@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+
+	//	"log"
 
 	//	"strings"
 
@@ -19,16 +20,19 @@ import (
 
 	kitlog "github.com/go-kit/log"
 
+	"github.com/mdaxf/signalrsrv/logger"
 	"github.com/mdaxf/signalrsrv/middleware"
-	//	"github.com/mdaxf/signalrsrv/public"
+	"github.com/mdaxf/signalrsrv/public"
 	"github.com/mdaxf/signalrsrv/signalr"
-	//	signalrserver "github.com/mdaxf/signalrsrv/signalr-server"
 )
 
 type Config struct {
-	Address string `json:"address"`
-	Clients string `json:"clients"`
+	Address string                 `json:"address"`
+	Clients string                 `json:"clients"`
+	Log     map[string]interface{} `json:"log"`
 }
+
+var ilog logger.Log
 
 var IACMessageBusName = "/iacmessagebus"
 
@@ -44,11 +48,13 @@ func runHTTPServer(address string, hub signalr.HubInterface, clients string) {
 
 	server.MapHTTP(signalr.WithHTTPServeMux(router), IACMessageBusName)
 
-	//	fmt.Printf("Serving public content from the embedded filesystem\n")
-	//	router.Handle("/", http.FileServer(http.FS(public.FS)))
-	fmt.Printf("Listening for websocket connections on http://%s\n", address)
+	ilog.Info(fmt.Sprintf("Serving public content from the embedded filesystem\n"))
+	router.Handle("/", http.FileServer(http.FS(public.FS)))
+
+	ilog.Info(fmt.Sprintf("Listening for websocket connections on %s %s", "Address:", address))
+	//	fmt.Printf("Listening for websocket connections on http://%s\n", address)
 	if err := http.ListenAndServe(address, middleware.LogRequests(router)); err != nil {
-		log.Fatal("ListenAndServe:", err)
+		ilog.Error(fmt.Sprintf("ListenAndServe: %s", err))
 	}
 }
 
@@ -64,7 +70,9 @@ func runHTTPClient(address string, receiver interface{}) error {
 		return err
 	}
 	c.Start()
+
 	fmt.Println("Client started")
+
 	return nil
 }
 
@@ -95,8 +103,15 @@ func main() {
 
 	clients := config.Clients
 
+	ilog := logger.Log{ModuleName: logger.Framework, User: "System", ControllerName: "Signalr Server"}
+	logger.Init(config.Log)
+
+	ilog.Info(fmt.Sprintf("Starting SignalR Server Address: %s, allow Clients: %s", address, clients))
+
 	//	url := "http://" + address + IACMessageBusName
-	hub := &IACMessageBus{}
+	hub := &IACMessageBus{
+		ilog: ilog,
+	}
 
 	go runHTTPServer(address, hub, clients)
 	<-time.After(time.Millisecond * 2)
