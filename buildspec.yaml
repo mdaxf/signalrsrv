@@ -7,12 +7,17 @@ phases:
 
   pre_build:
     commands:
-      - echo "Installing dependencies or other pre-build steps"
+      - echo "Logging in to Amazon ECR"
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY_URL
+
 
   build:
     commands:
       - echo "Building your Go application"
+      - docker build -t iac-signalrsrv .
+      - docker tag iac-signalrsrv:latest $ECR_REGISTRY_URL/iac-signalrsrv:latest
 
   post_build:
     commands:
-      - echo "Post-build steps, such as deployment"
+      - echo "Pushing Docker image to ECR"
+      - docker push $ECR_REGISTRY_URL/iac-signalrsrv:latest
