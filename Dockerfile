@@ -14,7 +14,7 @@ COPY public /app/public
 WORKDIR /app
 
 # Set permissions on the application (if needed)
-RUN chmod +x signalrsrv
+RUN chmod +x iac-signalr
 
 # Expose additional ports
 EXPOSE 8222
