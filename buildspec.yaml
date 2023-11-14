@@ -3,18 +3,16 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      golang: 1.14  # Specify the desired Go version
+      docker: 18
 
   pre_build:
     commands:
-      - go mod download
+      - echo "Installing dependencies or other pre-build steps"
 
   build:
     commands:
-      - go build -o signalrsrv-linux
+      - echo "Building your Go application"
 
-artifacts:
-  files:
-    - signalrsrv-linux
-    - signalRconfig.json
-    - public/*
+  post_build:
+    commands:
+      - echo "Post-build steps, such as deployment"
