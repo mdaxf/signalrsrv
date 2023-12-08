@@ -5,7 +5,7 @@ phases:
     commands:
       - echo "Logging in to Amazon ECR"
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION 
-      - echo "Rocky@19721007" | docker login --username "iacfdev@gmail.com" --password-stdin $ECR_REGISTRY_URL
+      - echo "xxxxx" | docker login --username "xxxxx" --password-stdin $ECR_REGISTRY_URL
 
 
   build:
